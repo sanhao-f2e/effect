@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{margin: 0; padding: 0;}
+        li{list-style: none;}
+
+        .banner{width: 100%; height: 500px; position: relative;}
+        .banner .b-list li{ display: none; position: absolute; width: 100%; height: 500px; background-position: center; background-repeat: no-repeat;}
+        .banner .b-list .active{display: block;}
+        .banner .b-list a{display: block; width: 100%; height: 500px;}
+        .banner .b-pns{display: none; }
+        .banner .i-prev, .banner .i-next{ opacity: 1; width: 70px; height: 70px; display: block; position: absolute; z-index: 12; top: 50%; margin-top: -35px;}
+        .banner .icons{background-image: url(../images/icons-banner.png);}
+        .banner .i-prev{background-position: -76px -2px; left: 0;z-index: 800;}
+        .banner .i-next{background-position: -2px -2px; right: 0;z-index: 800;}
+        .banner .b-btns{position: absolute; bottom: 5px; width: 100%; }
+        .banner .b-btns ul{display: block; margin: 0 auto; text-align: center; font-size: 0;}
+        .banner .b-btns li{ cursor: pointer; display: inline-block; width: 50px; height: 2px; background-color: rgba(51, 51, 51, .4); background-clip: content-box; margin: 0 3px; border-top: 15px transparent solid; border-bottom: 15px transparent solid;}
+        .banner .b-btns i{ display: block; width: 0; height: 2px; background-color: #333;}
+        .banner .b-btns i.active{width: 50px; -webkit-transition: 5s; transition: 5s;}
+    </style>
+</head>
+<body>
+<div class="banner">
+    <ul class="b-list">
+        <li class="active" style="background-image: url(http://img.sanhao.com/dev/mag/108/thumb.png);" data-original="http://img.sanhao.com/dev/mag/108/thumb.png">
+            <a target="_blank" href="#1"></a>
+        </li>
+        <li class="b-lazy" data-original="http://img.sanhao.com/dev/mag/137/thumb.png">
+            <a target="_blank" href="#2"></a>
+        </li>
+        <li class="b-lazy" data-original="http://img.sanhao.com/dev/mag/37/thumb.png">
+            <a target="_blank" href="#3"></a>
+        </li>
+        <li class="b-lazy" data-original="http://img.sanhao.com/dev/mag/121/thumb.png">
+            <a target="_blank" href="#4"></a>
+        </li>
+        <li class="b-lazy" data-original="http://img.sanhao.com/dev/mag/91/thumb.png">
+            <a target="_blank" href="#5"></a>
+        </li>
+    </ul>
+    <div class="b-pns">
+        <a href="javascript:;" class="icons i-prev"></a>
+        <a href="javascript:;" class="icons i-next"></a>
+    </div>
+    <div class="b-btns">
+        <ul>
+            <li><i></i></li>
+            <li><i></i></li>
+            <li><i></i></li>
+            <li><i></i></li>
+            <li><i></i></li>
+        </ul>
+    </div>
+</div>
+
+<script src="../js/jquery.1.12.4.min.js"></script>
+<script src="../js/jquery.lazyload.min.js"></script>
+<script>
+    //region banner
+    if(window.attachEvent) {
+        window.attachEvent('onload', bannerHandler);
+    } else {
+        window.addEventListener('load', bannerHandler, false);
+    }
+
+    function bannerHandler() {
+        var $banner = $('.banner'),
+            $banners = $banner.find('.b-list li'),
+            $bPns = $banner.find('.b-pns'),
+            $bBtns = $banner.find('.b-btns i'),
+            $bPrev = $banner.find('.i-prev'),
+            $bNext = $banner.find('.i-next'),
+            intervalTime = 5000,
+            direction = 1, // 1：向右，-1：向左
+            timer = null,
+            timer2 = null;
+
+        $banner.find('.b-lazy').lazyload({
+            effect: 'show',
+            skip_invisible: true
+        }).each(function (i, v) {
+            //图片预加载
+            var img = new Image;
+            img.src = $(this).data('original');
+            //img.onload = function () { console.log('第' + (i + 1) + '张，图片：' + this.src + '，加载就绪！'); };
+        });
+
+        //默认让第一个选中
+        $bBtns.removeClass('active').eq(0).addClass('active');
+
+        function loop() {
+            var idx = $banner.find('.b-list li.active').index();
+            if(idx == $banners.length - 1) { idx = -1; }
+            $banners.hide().removeClass('active').eq(idx + direction).addClass('active').fadeIn().trigger('scroll');
+            $bBtns.removeClass('active').eq(idx + direction).addClass('active');
+        }
+
+        timer = setInterval(loop, intervalTime);
+
+        $banner.hover(function () {
+            clearTimeout(timer2);
+            timer2 = setTimeout(function () {
+                clearInterval(timer);
+                $bPns.fadeIn();
+            }, 200);
+        }, function () {
+            clearTimeout(timer2);
+            clearInterval(timer);
+            direction = 1;
+            timer = setInterval(loop, intervalTime);
+            $bPns.fadeOut();
+        });
+
+        $bPrev.on('click', function () {
+            clearInterval(timer);
+            direction = -1;
+            loop();
+        });
+
+        $bNext.on('click', function () {
+            clearInterval(timer);
+            direction = 1;
+            loop();
+        });
+
+        $banner.on('click', '.b-btns li', function () {
+            var $t = $(this), idx = $t.index();
+            $banners.hide().removeClass('active').eq(idx).addClass('active').fadeIn().trigger('scroll');
+            $bBtns.removeClass('active').eq(idx).addClass('active');
+        });
+    }
+    //endregion
+</script>
+</body>
+</html>
